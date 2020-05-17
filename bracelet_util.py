@@ -23,7 +23,7 @@ def gen_possible_bracelet():
     if random.random() > 0.5:
         # generate a bracelet
         # base pattern can be 1 to 12 digits
-        pattern_int = random.randint(1,int(10**(DIGITS/2)))
+        pattern_int = random.randint(1,int(10**(DIGITS/6)))
         pattern_lst = [x for x in str(pattern_int)]
         result = pattern_lst.copy()
         while len(result + pattern_lst) <= DIGITS:
