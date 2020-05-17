@@ -34,7 +34,7 @@ from keras.models import Sequential
 from keras import layers
 import numpy as np
 from six.moves import range
-from validate_bracelet import complete_bracelet
+from bracelet_util import complete_bracelet, gen_possible_bracelet, DIGITS
 import random
 
 class CharacterTable(object):
@@ -87,7 +87,7 @@ class colors:
 
 # Parameters for the model and dataset.
 TRAINING_SIZE = 50000
-DIGITS = 24
+
 REVERSE = True
 
 # Maximum length of input is 'int + int' (e.g., '345+678'). Maximum length of
@@ -107,54 +107,19 @@ seen = set()
 # results
 random.seed(1729)
 
-def gen_possible_bracelet():
-    """
-    generates bracelet or not
-    according to
-    https://edabit.com/challenge/aMTXfakahQ45oZbJP
-    :return: array of integers possibly
-    meeting the definition defined in coding challenge
-    we need some non-bracelets for coding
-    """
-    if random.random() > 0.5:
-        # generate a bracelet
-        # base pattern can be 1 to 12 digits
-        pattern_int = random.randint(1,int(10**(DIGITS/2)))
-        pattern_lst = [inx(x) for x in str(pattern_int)]
-        result = pattern_lst.copy()
-        while len(result + pattern_lst) < DIGITS:
-            result += pattern_lst
-        # TODO maybe take this out if not
-        # debugging to save time generating
-        # data
-        assert(complete_bracelet(result))
-        # add a label of 1
-        result += [1]
-    else:
-        # generate an array of random integers
-        # if it happens to be a bracelet add
-        # one fo label, 0 otherwise
-        pattern_int = random.randint(1,int(10**DIGITS))
-        pattern_lst = [inx(x) for x in str(pattern_int)]
-        result += [1] if complete_bracelet(result) else [0]
+    
 print('Generating data...')
 while len(questions) < TRAINING_SIZE:
-    f = lambda: int(''.join(np.random.choice(list('0123456789'))
-                    for i in range(np.random.randint(1, DIGITS + 1))))
-
-    a, b = f(), f()
+    a = gen_possible_bracelet()
     # Skip any addition questions we've already seen
     # Also skip any such that x+Y == Y+x (hence the sorting).
-    key = tuple(sorted((a, b)))
+    key = tuple(a)
     if key in seen:
         continue
     seen.add(key)
     # Pad the data with spaces such that it is always MAXLEN.
-    q = '{}+{}'.format(a, b)
-    query = q + ' ' * (MAXLEN - len(q))
-    ans = str(a + b)
-    # Answers can be of maximum size DIGITS + 1.
-    ans += ' ' * (DIGITS + 1 - len(ans))
+    query = a[:-1]
+    ans = a[-1]
     if REVERSE:
         # Reverse the query, e.g., '12+345  ' becomes '  543+21'. (Note the
         # space used for padding.)
